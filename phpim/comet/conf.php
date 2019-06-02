@@ -4,6 +4,11 @@ $config =  array(
     "swooletable"=>array(
 
     ),
+    "backenddomain"=>"http://127.0.0.1:9573",
+    "redis" => array(
+        "host"=>"127.0.0.1",
+        "port"=>6379,
+    ),
     //主服务，选主服务 建议按 websocket（http） > http > udp || tcp 顺序创建 ,websocket只能作为主进程
     "server" => array(
         "server_name" => "tal_comet",
@@ -13,6 +18,7 @@ $config =  array(
         "socket" => SWOOLE_SOCK_TCP,
         "tablesize" => 1024,
         "processtimeout" => 10,//进程超时时间，超过10秒自动kill
+        "serverid"=>1
     ),
 
 

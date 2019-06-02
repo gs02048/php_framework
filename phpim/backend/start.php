@@ -2,6 +2,7 @@
 require("httpserver.php");
 require("websocket.php");
 require("server.php");
+require("cometclient.php");
 
 $params = parseArgvs($argv);
 

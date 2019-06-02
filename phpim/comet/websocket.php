@@ -19,7 +19,7 @@ class websocket
      */
     public function onOpen(swoole_websocket_server $svr, swoole_http_request $req)
     {
-        print_r($req);
+
     }
 
     /**
@@ -38,16 +38,29 @@ class websocket
         }
         $userfd = $frame->fd;
         switch ($data['type']){
-            case 'connect':
+            case CONNECT:
                 if(!isset($data['uid']) || !isset($data['roomid'])){
                     $this->curser->push($userfd,'param err');
                     return;
                 }
                 $uid = $data['uid'];
                 $roomid = $data['roomid'];
+
+                //向后端服务器连接验证是否合法
+                $res = httpClient::get($this->_config["backenddomain"]."/connect",array(
+                    'uid'=>$uid,
+                    'roomid'=>$roomid,
+                    'fd'=>$userfd,
+                    'serverid'=>$this->_config['server']['serverid']
+                ));
+                $result = json_decode($res,true);
+                if(!is_array($result) || !isset($result['stat']) || $result['stat'] != 1){
+                    $this->curser->push($userfd,json_encode(['type'=>CONNECT_REPLY,'msg'=>'join room fail']));
+                    return;
+                }
                 $table_key = intval($roomid) % 1024;
                 $this->curser->{'room_table_'.$table_key}->set($userfd,['uid'=>$uid,'roomid'=>$roomid,'time'=>time()]);
-                $this->curser->push($userfd,'join room success!');
+                $this->curser->push($userfd,json_encode(['type'=>CONNECT_REPLY,'msg'=>'join room success']));
                 return;
 
         }
@@ -63,8 +76,9 @@ class websocket
             }
             $uid = $info['uid'];
             $roomid = $info['roomid'];
-
-            httpClient::get('/close',['uid'=>$uid,'roomid'=>$roomid]);
+            //向后端服务器注销改连接
+            httpClient::get($this->_config["backenddomain"].'/close',['uid'=>$uid,'roomid'=>$roomid]);
+            $this->curser->{'room_table_'.$i}->del($fd);
             break;
         }
     }

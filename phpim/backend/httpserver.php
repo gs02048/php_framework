@@ -164,7 +164,8 @@ class httpserver
         $this->redisserver->hSet("room_detail_".$roomid,$uid,json_encode(
             array('uid'=>$uid,'roomid'=>$roomid,'serverid'=>$serverid,'fd'=>$fd)
         ));
-
+        echo json_encode(['stat'=>1]);
+        return;
     }
 
     /**

@@ -85,6 +85,9 @@ class httpserver
         echo "success";
     }
 
+    /**
+     *向当前comet server的room发送消息 收到push消息 根据相应房间id找到swoole table里面的fd进行推送
+     */
     public function pushRoom()
     {
         $res = array('stat'=>0);
@@ -98,11 +101,19 @@ class httpserver
         $table_key = intval($roomid) % 1024;
         foreach ($this->curser->{'room_table_'.$table_key} as $fd=>$data){
             if($data['roomid'] == $roomid){
-                $this->curser->push($fd,$msg);
+                $this->curser->push($fd,json_encode(['type'=>PUSH_MSG,'msg'=>$msg]));
             }
         }
         $res = array('stat'=>1,'msg'=>'send success');
         echo json_encode($res);
         return;
+    }
+
+    /**
+     * 向单个用户推送消息
+     */
+    public function pushUser()
+    {
+
     }
 }
